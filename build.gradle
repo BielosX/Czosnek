@@ -73,6 +73,7 @@ tasks.register('createPostgresContainer', DockerCreateContainer) {
 	imageId = pullPostgresImage.getImage()
 	hostConfig.portBindings = ['5432:5432']
 	hostConfig.autoRemove = true
+	hostConfig.tmpFs = ['/var/lib/postgresql/data': 'rw,noexec,size=500m']
 	envVars = [POSTGRES_USER: 'user', POSTGRES_PASSWORD: 'password', POSTGRES_DB: 'postgres']
 }
 
