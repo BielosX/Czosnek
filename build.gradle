@@ -9,6 +9,11 @@ plugins {
 	id 'org.flywaydb.flyway' version '9.22.0'
 }
 
+import com.bmuschko.gradle.docker.tasks.container.*
+import com.bmuschko.gradle.docker.tasks.image.*
+import org.flywaydb.gradle.task.*
+import nu.studer.gradle.jooq.*
+
 group = 'com.czosnek'
 
 
@@ -42,8 +47,77 @@ dependencies {
 	implementation 'org.testcontainers:postgresql:1.19.0'
 	implementation 'com.zaxxer:HikariCP:5.0.1'
 	implementation 'org.flywaydb:flyway-core:9.22.0'
+	jooqGenerator 'org.postgresql:postgresql:42.6.0' // REQUIRED!!
 }
 
 tasks.named('test') {
 	useJUnitPlatform()
+}
+
+tasks.register('pullPostgresImage', DockerPullImage) {
+	image = 'postgres:15.4-alpine'
+}
+
+tasks.register('createPostgresContainer', DockerCreateContainer) {
+	dependsOn pullPostgresImage
+	imageId = pullPostgresImage.getImage()
+	hostConfig.portBindings = ['5432:5432']
+	hostConfig.autoRemove = true
+	envVars = [POSTGRES_USER: 'user', POSTGRES_PASSWORD: 'password', POSTGRES_DB: 'postgres']
+}
+
+tasks.register('startPostgresContainer', DockerStartContainer) {
+	dependsOn createPostgresContainer
+	targetContainerId createPostgresContainer.getContainerId()
+}
+
+tasks.register('migratePostgres', FlywayMigrateTask) {
+	dependsOn startPostgresContainer
+	connectRetries = 10
+	connectRetriesInterval = 30
+	url = 'jdbc:postgresql://localhost:5432/postgres'
+	user = 'user'
+	password = 'password'
+}
+
+tasks.register('killPostgresContainer', DockerKillContainer) {
+	shouldRunAfter createPostgresContainer
+	targetContainerId createPostgresContainer.getContainerId()
+}
+
+jooq {
+	configurations {
+		main {
+			generationTool {
+				jdbc {
+					driver = 'org.postgresql.Driver'
+					url = 'jdbc:postgresql://localhost:5432/postgres'
+					user = 'user'
+					password = 'password'
+				}
+				generator {
+					name = 'org.jooq.codegen.DefaultGenerator'
+					strategy.name = 'org.jooq.codegen.DefaultGeneratorStrategy'
+					database {
+						name = 'org.jooq.meta.postgres.PostgresDatabase'
+						inputSchema = 'public'
+					}
+					generate {
+						deprecated = false
+						records = true
+						immutablePojos = true
+						fluentSetters = true
+					}
+					target {
+						packageName = 'com.czosnek.jooq'
+					}
+				}
+			}
+		}
+	}
+}
+
+tasks.named('generateJooq').configure {
+	dependsOn migratePostgres
+	finalizedBy killPostgresContainer
 }
