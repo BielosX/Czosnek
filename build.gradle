@@ -9,10 +9,12 @@ plugins {
 	id 'org.flywaydb.flyway' version '9.22.0'
 }
 
-import com.bmuschko.gradle.docker.tasks.container.*
-import com.bmuschko.gradle.docker.tasks.image.*
-import org.flywaydb.gradle.task.*
-import nu.studer.gradle.jooq.*
+
+import com.bmuschko.gradle.docker.tasks.container.DockerCreateContainer
+import com.bmuschko.gradle.docker.tasks.container.DockerKillContainer
+import com.bmuschko.gradle.docker.tasks.container.DockerStartContainer
+import com.bmuschko.gradle.docker.tasks.image.DockerPullImage
+import org.flywaydb.gradle.task.FlywayMigrateTask
 
 group = 'com.czosnek'
 
@@ -24,6 +26,14 @@ repositories {
 java {
 	toolchain {
 		languageVersion = JavaLanguageVersion.of(17)
+	}
+}
+
+sourceSets {
+	main {
+		java {
+			srcDir "${buildDir.absolutePath}/generated-src/jooq"
+		}
 	}
 }
 
