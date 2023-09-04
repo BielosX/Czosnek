@@ -1,7 +1,5 @@
 package com.czosnek;
 
-import static java.util.Collections.singletonList;
-
 import javax.sql.DataSource;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -22,9 +20,10 @@ public class LocalDbConfiguration {
   public PostgreSQLContainer<?> postgreSQLContainer() {
     String IMAGE_NAME = "postgres:15.4-alpine";
     PostgreSQLContainer<?> container = new PostgreSQLContainer<>(IMAGE_NAME);
+    container.setCommand("postgres", "-c", "fsync=off", "-c", "log_statement=all");
     container.start();
     Slf4jLogConsumer consumer = new Slf4jLogConsumer(log);
-    container.setLogConsumers(singletonList(consumer));
+    container.followOutput(consumer);
     return container;
   }
 

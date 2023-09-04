@@ -17,6 +17,8 @@ CREATE TABLE books (
     updated TIMESTAMP
 );
 
+CREATE UNIQUE INDEX unique_isbn ON books (isbn);
+
 CREATE TABLE authors_to_books (
     id SERIAL PRIMARY KEY,
     author_id INTEGER REFERENCES authors(id),
