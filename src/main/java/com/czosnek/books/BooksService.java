@@ -99,14 +99,7 @@ public class BooksService {
           booksResult.forEach(book -> insertAuthorToBook(dsl, authorResult, book));
           List<Book> bookResponses =
               booksResult.stream().map(BooksService::booksRecordToBook).toList();
-          return new AuthorWithBooks(
-              authorResult.getId(),
-              authorResult.getFirstName(),
-              authorResult.getLastName(),
-              authorResult.getAge(),
-              bookResponses,
-              authorResult.getCreated(),
-              authorResult.getUpdated());
+          return authorRecordToAuthorWithBooks(authorResult, bookResponses);
         });
   }
 
