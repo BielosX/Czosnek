@@ -154,4 +154,12 @@ public class BooksService {
   public void deleteAuthor(int authorId) {
     context.deleteFrom(AUTHORS).where(AUTHORS.ID.eq(authorId)).execute();
   }
+
+  public void detachBookFromAuthor(int authorId, int bookId) {
+    context
+        .deleteFrom(AUTHORS_TO_BOOKS)
+        .where(AUTHORS_TO_BOOKS.AUTHOR_ID.eq(authorId))
+        .and(AUTHORS_TO_BOOKS.BOOK_ID.eq(bookId))
+        .execute();
+  }
 }
