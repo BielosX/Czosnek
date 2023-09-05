@@ -3,10 +3,10 @@ package com.czosnek.books;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.Max;
+import jakarta.validation.constraints.Min;
 import lombok.RequiredArgsConstructor;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequiredArgsConstructor
@@ -18,5 +18,14 @@ public class AuthorsController {
       consumes = {APPLICATION_JSON_VALUE})
   public AddAuthorResponse addAuthor(@Valid @RequestBody AddAuthorRequest request) {
     return booksService.addAuthor(request);
+  }
+
+  @GetMapping(
+      path = "/authors",
+      produces = {APPLICATION_JSON_VALUE})
+  public GetAuthorsResult getAuthors(
+      @RequestParam(defaultValue = "0") @Min(0) int lastId,
+      @RequestParam(defaultValue = "10") @Min(1) @Max(100) int limit) {
+    return booksService.getAuthors(lastId, limit);
   }
 }

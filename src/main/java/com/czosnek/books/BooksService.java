@@ -103,4 +103,20 @@ public class BooksService {
               authorResult.getUpdated());
         });
   }
+
+  public GetAuthorsResult getAuthors(int lastId, int limit) {
+    List<Author> authors =
+        context
+            .selectFrom(AUTHORS)
+            .orderBy(AUTHORS.ID)
+            .seek(lastId)
+            .limit(limit)
+            .fetchInto(Author.class);
+    int size = authors.size();
+    Integer newLastId = null;
+    if (size > 0) {
+      newLastId = authors.get(size - 1).id();
+    }
+    return new GetAuthorsResult(authors, newLastId);
+  }
 }
