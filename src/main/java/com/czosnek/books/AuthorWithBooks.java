@@ -3,11 +3,11 @@ package com.czosnek.books;
 import java.time.LocalDateTime;
 import java.util.List;
 
-public record AddAuthorResponse(
+public record AuthorWithBooks(
     int id,
     String firstName,
     String lastName,
     int age,
-    List<AddBookResponse> books,
+    List<Book> books,
     LocalDateTime created,
     LocalDateTime updated) {}

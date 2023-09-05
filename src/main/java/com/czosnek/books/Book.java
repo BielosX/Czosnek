@@ -3,7 +3,7 @@ package com.czosnek.books;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 
-public record AddBookResponse(
+public record Book(
     int id,
     String title,
     String isbn,

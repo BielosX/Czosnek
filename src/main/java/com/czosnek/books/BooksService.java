@@ -7,6 +7,7 @@ import com.czosnek.jooq.tables.records.AuthorsToBooksRecord;
 import com.czosnek.jooq.tables.records.BooksRecord;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import org.jooq.DSLContext;
 import org.jooq.InsertQuery;
@@ -53,13 +54,18 @@ public class BooksService {
     return query.getReturnedRecord();
   }
 
-  private static AddBookResponse booksRecordToResponse(BooksRecord record) {
-    return new AddBookResponse(
+  private static Book booksRecordToBook(BooksRecord record) {
+    return record.into(Book.class);
+  }
+
+  private static AuthorWithBooks authorRecordToAuthorWithBooks(
+      AuthorsRecord record, List<Book> books) {
+    return new AuthorWithBooks(
         record.getId(),
-        record.getTitle(),
-        record.getIsbn(),
-        record.getPublished(),
-        record.getGenre(),
+        record.getFirstName(),
+        record.getLastName(),
+        record.getAge(),
+        books,
         record.getCreated(),
         record.getUpdated());
   }
@@ -75,7 +81,7 @@ public class BooksService {
     context.insertInto(AUTHORS_TO_BOOKS).set(record).execute();
   }
 
-  public AddAuthorResponse addAuthor(AddAuthorRequest request) {
+  public AuthorWithBooks addAuthor(AddAuthorRequest request) {
     AuthorsRecord authorRecord = createAuthorRecord(request);
     List<BooksRecord> booksRecords =
         request.books().stream().map(BooksService::createBookRecord).toList();
@@ -91,9 +97,9 @@ public class BooksService {
               booksRecords.stream().map(booksRecord -> insertBook(dsl, booksRecord)).toList();
           assert authorResult != null;
           booksResult.forEach(book -> insertAuthorToBook(dsl, authorResult, book));
-          List<AddBookResponse> bookResponses =
-              booksResult.stream().map(BooksService::booksRecordToResponse).toList();
-          return new AddAuthorResponse(
+          List<Book> bookResponses =
+              booksResult.stream().map(BooksService::booksRecordToBook).toList();
+          return new AuthorWithBooks(
               authorResult.getId(),
               authorResult.getFirstName(),
               authorResult.getLastName(),
@@ -118,5 +124,37 @@ public class BooksService {
       newLastId = authors.get(size - 1).id();
     }
     return new GetAuthorsResult(authors, newLastId);
+  }
+
+  private record AuthorAndBook(AuthorsRecord authorRecord, BooksRecord booksRecord) {}
+
+  public Optional<AuthorWithBooks> getAuthorById(int authorId) {
+    List<AuthorAndBook> authorAndBooks =
+        context
+            .select(AUTHORS.fields())
+            .select(BOOKS.fields())
+            .from(AUTHORS)
+            .join(AUTHORS_TO_BOOKS)
+            .on(AUTHORS.ID.eq(AUTHORS_TO_BOOKS.AUTHOR_ID))
+            .join(BOOKS)
+            .on(BOOKS.ID.eq(AUTHORS_TO_BOOKS.BOOK_ID))
+            .where(AUTHORS.ID.eq(authorId))
+            .fetch(
+                record -> {
+                  AuthorsRecord authorsRecord = record.into(AUTHORS).into(AuthorsRecord.class);
+                  BooksRecord booksRecord = record.into(BOOKS).into(BooksRecord.class);
+                  return new AuthorAndBook(authorsRecord, booksRecord);
+                });
+    if (!authorAndBooks.isEmpty()) {
+      AuthorsRecord author = authorAndBooks.get(0).authorRecord();
+      List<Book> books =
+          authorAndBooks.stream()
+              .map(AuthorAndBook::booksRecord)
+              .map(BooksService::booksRecordToBook)
+              .toList();
+      return Optional.of(authorRecordToAuthorWithBooks(author, books));
+    } else {
+      return Optional.empty();
+    }
   }
 }

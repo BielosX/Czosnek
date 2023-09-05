@@ -6,6 +6,7 @@ import jakarta.validation.Valid;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -16,7 +17,7 @@ public class AuthorsController {
   @PostMapping(
       path = "/authors",
       consumes = {APPLICATION_JSON_VALUE})
-  public AddAuthorResponse addAuthor(@Valid @RequestBody AddAuthorRequest request) {
+  public AuthorWithBooks addAuthor(@Valid @RequestBody AddAuthorRequest request) {
     return booksService.addAuthor(request);
   }
 
@@ -27,5 +28,15 @@ public class AuthorsController {
       @RequestParam(defaultValue = "0") @Min(0) int lastId,
       @RequestParam(defaultValue = "10") @Min(1) @Max(100) int limit) {
     return booksService.getAuthors(lastId, limit);
+  }
+
+  @GetMapping(
+      path = "/authors/{authorId}",
+      produces = {APPLICATION_JSON_VALUE})
+  public ResponseEntity<AuthorWithBooks> getAuthorById(@PathVariable int authorId) {
+    return booksService
+        .getAuthorById(authorId)
+        .map(ResponseEntity::ok)
+        .orElse(ResponseEntity.notFound().build());
   }
 }
