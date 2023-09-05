@@ -150,4 +150,8 @@ public class BooksService {
       return Optional.empty();
     }
   }
+
+  public void deleteAuthor(int authorId) {
+    context.deleteFrom(AUTHORS).where(AUTHORS.ID.eq(authorId)).execute();
+  }
 }

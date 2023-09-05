@@ -21,8 +21,8 @@ CREATE UNIQUE INDEX unique_isbn ON books (isbn);
 
 CREATE TABLE authors_to_books (
     id SERIAL PRIMARY KEY,
-    author_id INTEGER REFERENCES authors(id),
-    book_id INTEGER REFERENCES books(id),
+    author_id INTEGER REFERENCES authors(id) ON DELETE CASCADE,
+    book_id INTEGER REFERENCES books(id) ON DELETE CASCADE,
     created TIMESTAMP,
     updated TIMESTAMP
 );

@@ -39,4 +39,9 @@ public class AuthorsController {
         .map(ResponseEntity::ok)
         .orElse(ResponseEntity.notFound().build());
   }
+
+  @DeleteMapping(path = "/authors/{authorId}")
+  public void deleteAuthorById(@PathVariable int authorId) {
+    booksService.deleteAuthor(authorId);
+  }
 }
