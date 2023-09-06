@@ -5,12 +5,15 @@ import static io.restassured.RestAssured.given;
 import static org.hamcrest.Matchers.*;
 
 import io.restassured.RestAssured;
+import java.io.IOException;
 import org.jooq.DSLContext;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.server.LocalServerPort;
+import org.springframework.core.io.Resource;
 import org.springframework.test.context.ActiveProfiles;
 
 @ActiveProfiles({"local"})
@@ -18,6 +21,12 @@ import org.springframework.test.context.ActiveProfiles;
 public class AuthorsControllerIT {
   @LocalServerPort int port;
   @Autowired DSLContext context;
+
+  @Value("classpath:author-no-books.json")
+  private Resource authorNoBooks;
+
+  @Value("classpath:author-one-book.json")
+  private Resource authorOneBook;
 
   @BeforeEach
   public void setUp() {
@@ -47,25 +56,10 @@ public class AuthorsControllerIT {
   }
 
   @Test
-  public void shouldSaveNewAuthorWithBookReturn200AndBookId() {
+  public void shouldSaveNewAuthorWithBookReturn200AndBookId() throws IOException {
     given()
         .header("Content-Type", "application/json")
-        .body(
-            """
-                            {
-                              "firstName": "Tomasz",
-                              "lastName": "Nowak",
-                              "age": 50,
-                              "books": [
-                                {
-                                  "title": "Some Title",
-                                  "isbn": "978-3-16-148410-0",
-                                  "published": "2007-12-03",
-                                  "genre": "Fantasy"
-                                }
-                              ]
-                            }
-                            """)
+        .body(authorOneBook.getFile())
         .when()
         .post("/authors")
         .then()
@@ -74,17 +68,10 @@ public class AuthorsControllerIT {
   }
 
   @Test
-  public void shouldReturnSavedAuthors() {
+  public void shouldReturnSavedAuthors() throws IOException {
     given()
         .header("Content-Type", "application/json")
-        .body(
-            """
-                            {
-                              "firstName": "Janusz",
-                              "lastName": "Anon",
-                              "age": 50
-                            }
-                            """)
+        .body(authorNoBooks.getFile())
         .when()
         .post("/authors")
         .then()
@@ -98,5 +85,30 @@ public class AuthorsControllerIT {
         .then()
         .statusCode(200)
         .body("authors[0].firstName", equalTo("Janusz"));
+  }
+
+  @Test
+  public void shouldReturnAuthorWithBooksDetails() throws IOException {
+    int authorId =
+        given()
+            .header("Content-Type", "application/json")
+            .body(authorOneBook.getFile())
+            .when()
+            .post("/authors")
+            .body()
+            .jsonPath()
+            .getInt("id");
+    given()
+        .header("Content-Type", "application/json")
+        .pathParam("authorId", authorId)
+        .when()
+        .get("/authors/{authorId}")
+        .then()
+        .statusCode(200)
+        .body("id", equalTo(authorId))
+        .and()
+        .body("lastName", equalTo("Nowak"))
+        .and()
+        .body("books[0].title", equalTo("Some Title"));
   }
 }

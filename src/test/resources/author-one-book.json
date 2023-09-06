@@ -1,0 +1,13 @@
+{
+  "firstName": "Tomasz",
+  "lastName": "Nowak",
+  "age": 50,
+  "books": [
+    {
+      "title": "Some Title",
+      "isbn": "978-3-16-148410-0",
+      "published": "2007-12-03",
+      "genre": "Fantasy"
+    }
+  ]
+}
