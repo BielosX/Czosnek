@@ -84,7 +84,9 @@ public class BooksService {
   public AuthorWithBooks addAuthor(AddAuthorRequest request) {
     AuthorsRecord authorRecord = createAuthorRecord(request);
     List<BooksRecord> booksRecords =
-        request.books().stream().map(BooksService::createBookRecord).toList();
+        Optional.ofNullable(request.books()).orElse(List.of()).stream()
+            .map(BooksService::createBookRecord)
+            .toList();
     return context.transactionResult(
         config -> {
           DSLContext dsl = config.dsl();
