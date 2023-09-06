@@ -117,4 +117,29 @@ public class AuthorsControllerIT {
         .and()
         .body("books[0].title", equalTo("Some Title"));
   }
+
+  @Test
+  public void shouldDeleteAuthorById() throws IOException {
+    int authorId =
+        given()
+            .header("Content-Type", "application/json")
+            .body(authorNoBooks.getFile())
+            .when()
+            .post("/authors")
+            .body()
+            .jsonPath()
+            .getInt("id");
+    given()
+        .pathParam("authorId", authorId)
+        .when()
+        .delete("/authors/{authorId}")
+        .then()
+        .statusCode(204);
+    given()
+        .pathParam("authorId", authorId)
+        .when()
+        .get("/authors/{authorId}")
+        .then()
+        .statusCode(404);
+  }
 }
