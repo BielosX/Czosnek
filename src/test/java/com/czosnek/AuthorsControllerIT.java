@@ -5,6 +5,7 @@ import static io.restassured.RestAssured.given;
 import static org.hamcrest.Matchers.*;
 
 import io.restassured.RestAssured;
+import io.restassured.path.json.JsonPath;
 import java.io.IOException;
 import org.jooq.DSLContext;
 import org.junit.jupiter.api.BeforeEach;
@@ -141,5 +142,34 @@ public class AuthorsControllerIT {
         .get("/authors/{authorId}")
         .then()
         .statusCode(404);
+  }
+
+  @Test
+  public void shouldDetachAuthorFromBook() throws IOException {
+    JsonPath jsonPath =
+        given()
+            .header("Content-Type", "application/json")
+            .body(authorOneBook.getFile())
+            .when()
+            .post("/authors")
+            .body()
+            .jsonPath();
+    int authorId = jsonPath.getInt("id");
+    int bookId = jsonPath.getInt("books[0].id");
+    given()
+        .pathParam("authorId", authorId)
+        .pathParam("bookId", bookId)
+        .when()
+        .delete("/authors/{authorId}/books/{bookId}")
+        .then()
+        .statusCode(204);
+    given()
+        .header("Content-Type", "application/json")
+        .pathParam("authorId", authorId)
+        .when()
+        .get("/authors/{authorId}")
+        .then()
+        .statusCode(200)
+        .body("books", is(empty()));
   }
 }

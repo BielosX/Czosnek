@@ -47,7 +47,9 @@ public class AuthorsController {
   }
 
   @DeleteMapping(path = "/authors/{authorId}/books/{bookId}")
-  public void detachBookFromAuthor(@PathVariable int authorId, @PathVariable int bookId) {
+  public ResponseEntity<?> detachBookFromAuthor(
+      @PathVariable int authorId, @PathVariable int bookId) {
     booksService.detachBookFromAuthor(authorId, bookId);
+    return ResponseEntity.noContent().build();
   }
 }

@@ -6,6 +6,7 @@ import com.czosnek.jooq.tables.records.AuthorsRecord;
 import com.czosnek.jooq.tables.records.AuthorsToBooksRecord;
 import com.czosnek.jooq.tables.records.BooksRecord;
 import java.time.LocalDateTime;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
@@ -129,9 +130,9 @@ public class BooksService {
             .select(AUTHORS.fields())
             .select(BOOKS.fields())
             .from(AUTHORS)
-            .join(AUTHORS_TO_BOOKS)
+            .leftJoin(AUTHORS_TO_BOOKS)
             .on(AUTHORS.ID.eq(AUTHORS_TO_BOOKS.AUTHOR_ID))
-            .join(BOOKS)
+            .leftJoin(BOOKS)
             .on(BOOKS.ID.eq(AUTHORS_TO_BOOKS.BOOK_ID))
             .where(AUTHORS.ID.eq(authorId))
             .fetch(
@@ -147,6 +148,9 @@ public class BooksService {
               .map(AuthorAndBook::booksRecord)
               .map(BooksService::booksRecordToBook)
               .toList();
+      if (books.size() == 1 && books.get(0).id() == 0) {
+        books = List.of();
+      }
       return Optional.of(authorRecordToAuthorWithBooks(author, books));
     } else {
       return Optional.empty();
