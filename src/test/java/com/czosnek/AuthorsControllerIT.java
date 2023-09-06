@@ -39,4 +39,31 @@ public class AuthorsControllerIT {
         .statusCode(200)
         .body("id", is(notNullValue()));
   }
+
+  @Test
+  public void shouldSaveNewAuthorWithBookReturn200AndBookId() {
+    given()
+        .header("Content-Type", "application/json")
+        .body(
+            """
+                            {
+                              "firstName": "Tomasz",
+                              "lastName": "Nowak",
+                              "age": 50,
+                              "books": [
+                                {
+                                  "title": "Some Title",
+                                  "isbn": "978-3-16-148410-0",
+                                  "published": "2007-12-03",
+                                  "genre": "Fantasy"
+                                }
+                              ]
+                            }
+                            """)
+        .when()
+        .post("/authors")
+        .then()
+        .statusCode(200)
+        .body("books[0].id", is(notNullValue()));
+  }
 }
