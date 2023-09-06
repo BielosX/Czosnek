@@ -52,7 +52,13 @@ public class AuthorsControllerIT {
         .post("/authors")
         .then()
         .statusCode(200)
-        .body("id", is(notNullValue()));
+        .body("id", is(notNullValue()))
+        .and()
+        .body("firstName", equalTo("Tomasz"))
+        .and()
+        .body("lastName", equalTo("Nowak"))
+        .and()
+        .body("age", equalTo(50));
   }
 
   @Test
