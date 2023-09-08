@@ -31,6 +31,7 @@ public class JwtSuccessHandler implements AuthenticationSuccessHandler {
     String token =
         JWT.create()
             .withIssuedAt(timestamp)
+            .withSubject(authentication.getName())
             .withExpiresAt(timestamp.plus(Duration.ofHours(1)))
             .sign(algorithm);
     response.setStatus(200);

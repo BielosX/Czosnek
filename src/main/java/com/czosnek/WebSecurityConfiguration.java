@@ -18,12 +18,16 @@ public class WebSecurityConfiguration {
       HttpSecurity http,
       JwtAuthorizationFilter filter,
       JwtSuccessHandler successHandler,
+      AuthEntryPoint authEntryPoint,
       AuthFailureHandler failureHandler)
       throws Exception {
-    http.authorizeHttpRequests(authorize -> authorize.anyRequest().permitAll())
+    http.authorizeHttpRequests(
+            authorize ->
+                authorize.requestMatchers("/authenticate").permitAll().anyRequest().authenticated())
         .sessionManagement(
             session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
         .csrf(AbstractHttpConfigurer::disable)
+        .exceptionHandling(handling -> handling.authenticationEntryPoint(authEntryPoint))
         .formLogin(
             login ->
                 login

@@ -39,8 +39,10 @@ public class AuthorsControllerIT {
 
   @Test
   public void shouldSaveNewAuthorReturn200AndAuthorId() {
+    String token = givenToken();
     given()
         .header("Content-Type", "application/json")
+        .header("Authorization", "Bearer " + token)
         .body(
             """
                     {
@@ -64,8 +66,10 @@ public class AuthorsControllerIT {
 
   @Test
   public void shouldSaveNewAuthorWithBookReturn200AndBookId() throws IOException {
+    String token = givenToken();
     given()
         .header("Content-Type", "application/json")
+        .header("Authorization", "Bearer " + token)
         .body(authorOneBook.getFile())
         .when()
         .post("/authors")
@@ -76,8 +80,10 @@ public class AuthorsControllerIT {
 
   @Test
   public void shouldReturnSavedAuthors() throws IOException {
+    String token = givenToken();
     given()
         .header("Content-Type", "application/json")
+        .header("Authorization", "Bearer " + token)
         .body(authorNoBooks.getFile())
         .when()
         .post("/authors")
@@ -85,6 +91,7 @@ public class AuthorsControllerIT {
         .statusCode(200);
     given()
         .header("Content-Type", "application/json")
+        .header("Authorization", "Bearer " + token)
         .queryParam("lastId", 0)
         .queryParam("limit", 10)
         .when()
@@ -96,9 +103,11 @@ public class AuthorsControllerIT {
 
   @Test
   public void shouldReturnAuthorWithBooksDetails() throws IOException {
+    String token = givenToken();
     int authorId =
         given()
             .header("Content-Type", "application/json")
+            .header("Authorization", "Bearer " + token)
             .body(authorOneBook.getFile())
             .when()
             .post("/authors")
@@ -107,6 +116,7 @@ public class AuthorsControllerIT {
             .getInt("id");
     given()
         .header("Content-Type", "application/json")
+        .header("Authorization", "Bearer " + token)
         .pathParam("authorId", authorId)
         .when()
         .get("/authors/{authorId}")
@@ -121,9 +131,11 @@ public class AuthorsControllerIT {
 
   @Test
   public void shouldDeleteAuthorById() throws IOException {
+    String token = givenToken();
     int authorId =
         given()
             .header("Content-Type", "application/json")
+            .header("Authorization", "Bearer " + token)
             .body(authorNoBooks.getFile())
             .when()
             .post("/authors")
@@ -132,12 +144,14 @@ public class AuthorsControllerIT {
             .getInt("id");
     given()
         .pathParam("authorId", authorId)
+        .header("Authorization", "Bearer " + token)
         .when()
         .delete("/authors/{authorId}")
         .then()
         .statusCode(204);
     given()
         .pathParam("authorId", authorId)
+        .header("Authorization", "Bearer " + token)
         .when()
         .get("/authors/{authorId}")
         .then()
@@ -146,9 +160,11 @@ public class AuthorsControllerIT {
 
   @Test
   public void shouldDetachAuthorFromBook() throws IOException {
+    String token = givenToken();
     JsonPath jsonPath =
         given()
             .header("Content-Type", "application/json")
+            .header("Authorization", "Bearer " + token)
             .body(authorOneBook.getFile())
             .when()
             .post("/authors")
@@ -157,6 +173,7 @@ public class AuthorsControllerIT {
     int authorId = jsonPath.getInt("id");
     int bookId = jsonPath.getInt("books[0].id");
     given()
+        .header("Authorization", "Bearer " + token)
         .pathParam("authorId", authorId)
         .pathParam("bookId", bookId)
         .when()
@@ -164,6 +181,7 @@ public class AuthorsControllerIT {
         .then()
         .statusCode(204);
     given()
+        .header("Authorization", "Bearer " + token)
         .header("Content-Type", "application/json")
         .pathParam("authorId", authorId)
         .when()
@@ -171,5 +189,15 @@ public class AuthorsControllerIT {
         .then()
         .statusCode(200)
         .body("books", is(empty()));
+  }
+
+  private static String givenToken() {
+    return given()
+        .header("Content-Type", "application/x-www-form-urlencoded")
+        .body("username=demo-api-user&password=6e58aeca-0516-4076-ba7b-f375ae296928")
+        .when()
+        .post("/authenticate")
+        .body()
+        .print();
   }
 }
