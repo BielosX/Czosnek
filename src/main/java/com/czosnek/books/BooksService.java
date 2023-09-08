@@ -6,7 +6,6 @@ import com.czosnek.jooq.tables.records.AuthorsRecord;
 import com.czosnek.jooq.tables.records.AuthorsToBooksRecord;
 import com.czosnek.jooq.tables.records.BooksRecord;
 import java.time.LocalDateTime;
-import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;

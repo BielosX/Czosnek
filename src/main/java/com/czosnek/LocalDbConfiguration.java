@@ -1,7 +1,6 @@
 package com.czosnek;
 
 import javax.sql.DataSource;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.postgresql.ds.PGSimpleDataSource;
 import org.springframework.context.annotation.Bean;
@@ -13,12 +12,11 @@ import org.testcontainers.containers.output.Slf4jLogConsumer;
 @Slf4j
 @Configuration
 @Profile({"local"})
-@RequiredArgsConstructor
 public class LocalDbConfiguration {
+  private static final String IMAGE_NAME = "postgres:15.4-alpine";
 
   @Bean
   public PostgreSQLContainer<?> postgreSQLContainer() {
-    String IMAGE_NAME = "postgres:15.4-alpine";
     PostgreSQLContainer<?> container = new PostgreSQLContainer<>(IMAGE_NAME);
     container.setCommand("postgres", "-c", "fsync=off", "-c", "log_statement=all");
     container.start();
